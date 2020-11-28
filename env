@@ -1,0 +1,15 @@
+postStagingTemplateName:    PostStagingTemplate
+
+controllerName: Controller DC-1
+peercontrollerName: Controller DC-2
+defaultAnalyticsClusterName: Analytics-Cluster-1
+solutionTier: SD-WAN-Premium
+bandwidth: 100 Mbps
+
+custPrefix: boa
+gchId: 248230044
+
+
+ntpServer1: 230.455.345.23
+acsSrvIp1: 240.234.212.45
+acsAuthKey1: verizonOne

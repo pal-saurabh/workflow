@@ -1,0 +1,373 @@
+{
+	"versaPostStagingTemplate": [{
+			"apiName": "configPostStageTemplate",
+			"apiEndpoint": "vnms/sdwan/workflow/templates/template",
+			"apiType": "POST",
+			"expectedResponseStatus": "200",
+			"expectedResponsePayload": {},
+			"apiIndex": 1,
+			"respVar": [],
+			"apiPayload": {
+				"versanms.sdwan-template-workflow": {
+					"templateName": "$*postStagingTemplateName$",
+					"templateType": "sdwan-post-staging",
+					"controllers": ["$*controllerName$", "$*peercontrollerName$"],
+					"providerOrg": {
+						"name": "$*custPrefix$_$*gchId$",
+						"statefulFW": false,
+						"nextGenFW": false
+					},
+					"analyticsCluster": "$*defaultAnalyticsClusterName$",
+					"deviceFirmfactor": "6",
+					"wanInterfaces": [{
+							"interfaceName": "vni-0/0",
+							"pppoe": false,
+							"unitInfo": [{
+								"subUnit": 0,
+								"vlanId": 0,
+								"networkName": "PIP",
+								"ipv4Static": true,
+								"ipv4Dhcp": false,
+								"ipv6Static": false,
+								"ipv6Dhcp": false,
+								"allowSSH": false,
+								"monitor": {},
+								"linkPriority": "",
+								"transportDomains": ["MPLS"]
+							}]
+						},
+						{
+							"interfaceName": "vni-0/1",
+							"pppoe": false,
+							"unitInfo": [{
+								"subUnit": 0,
+								"vlanId": 0,
+								"networkName": "INET",
+								"ipv4Static": true,
+								"ipv4Dhcp": false,
+								"ipv6Static": false,
+								"ipv6Dhcp": false,
+								"allowSSH": false,
+								"monitor": {},
+								"linkPriority": "",
+								"transportDomains": ["Internet"]
+							}]
+						}
+					],
+					"deviceType": "full-mesh",
+					"redundantPair": {
+						"enable": false
+					},
+					"lanInterfaces": [
+
+						{
+							"interfaceName": "vni-0/2",
+							"unitInfo": [{
+								"subUnit": 0,
+								"vlanId": 0,
+								"networkName": "LAN",
+								"subOrganization": "$*custPrefix$_$*gchId$",
+								"ipv4Static": true,
+								"ipv4Dhcp": false,
+								"ip6Static": false,
+								"ipv6Dhcp": false,
+								"vrfName": "$*custPrefix$_$*gchId$-LAN-VR",
+								"zoneName": "",
+								"routing": {
+									"pim": false
+								}
+							}]
+						}
+					],
+					"NTPServers": [{
+						"networkName": "",
+						"server": "$*ntpServer1$"
+					}],
+					"TacacsPlusServers": [
+
+						{
+							"networkName": "",
+							"server": "$*acsSrvIp1$",
+							"authKey": "$*acsAuthKey1$",
+							"actions": ["authentication"]
+						}
+					],
+					"RadiusServers": [],
+					"solutionTier": "$*solutionTier$",
+					"bandwidth": "$*bandwidth$",
+					"customParams": [],
+					"isAnalyticsEnabled": true,
+					"isStaging": false,
+					"isPrimary": true,
+					"diaConfig": {
+						"loadBalance": false
+					},
+					"splitTunnels": [{
+						"vrfName": "$*custPrefix$_$*gchId$-LAN-VR",
+						"wanNetworkName": "INET",
+						"dia": "true",
+						"gateway": false
+					}],
+					"siteToSiteTunnels": [],
+					"inBoundNats": []
+				}
+			}
+		},
+		{
+			"apiName": "CreateTviInterface",
+			"apiEndpoint": "api/config/devices/template/Post-Staging-Template/config/interfaces",
+			"apiType": "POST",
+			"expectedResponseStatus": "200",
+			"expectedResponsePayload": {},
+			"apiIndex": 2,
+			"respVar": [],
+			"apiPayload": {
+				"tvi": [{
+					"name": "tvi-0/99",
+					"enable": true,
+					"mode": "ipsec",
+					"mtu": "1400",
+					"type": "ipsec",
+					"unit": [{
+						"name": "0",
+						"family": {
+							"inet": {
+								"address": [{
+										"addr": "{$v_tvi-0-99_-_Unit_0_StaticAddress_IPv4_Prefix-1__tunnelStaticAddress}"
+									},
+									{
+										"addr": "{$v_tvi-0-99_-_Unit_0_StaticAddress_IPv4_Prefix-1__tunnelStaticAddress}"
+									}
+								]
+							}
+						},
+						"enable": true
+					}]
+				}]
+			}
+		},
+		{
+			"apiName": "getCustLANVrfDetails",
+			"apiEndpoint": "api/config/devices/template/$*postStagingTemplateName$/config/routing-instances/routing-instance/$*custPrefix$_$*gchId$-LAN-VR/interfaces",
+			"apiType": "GET",
+			"expectedResponseStatus": "200",
+			"apiIndex": 3,
+			"apiPayload": null,
+			"respVar": [{
+					"name": "lanVRInterface1",
+					"jsonPath": "interfaces.0",
+					"apiType": "persistData"
+				},
+				{
+					"name": "lanVRInterface2",
+					"jsonPath": "interfaces.1",
+					"apiType": "persistData"
+				}
+
+			],
+			"expectedResponsePayload": {
+				"interfaces": [
+					"tvi-0/603.0",
+					"tvi-0/2626.0"
+				]
+			}
+		},
+		{
+			"apiName": "addTunnelInterface",
+			"apiEndpoint": "api/config/devices/template/$*postStagingTemplateName$/config/routing-instances/routing-instance/$*custPrefix$_$*gchId$-LAN-VR/interfaces",
+			"apiType": "PUT",
+			"expectedResponseStatus": "204",
+			"expectedResponsePayload": {},
+			"apiIndex": 4,
+			"respVar": [],
+			"apiPayload": {
+				"interfaces": [
+					"$*lanVRInterface1$",
+					"$*lanVRInterface2$",
+					"tvi-0/99.0"
+				]
+			}
+		},
+		{
+			"apiName": "getInterfacesForTrafficIdentification",
+			"apiEndpoint": "/api/config/devices/device/$*postStagingTemplateName$/config/orgs/org/$*custPrefix$_$*gchId$/traffic-identification/using",
+			"apiType": "GET",
+			"expectedResponseStatus": "200",
+			"apiIndex": 5,
+			"apiPayload": null,
+			"respVar": [{
+					"name": "$*ctiInterface1$",
+					"jsonPath": "$.interfaces[0]",
+					"apiType": "persistData"
+				},
+				{
+					"name": "$*ctiInterface2$",
+					"jsonPath": "$.interfaces[1]",
+					"apiType": "persistData"
+				},
+				{
+					"name": "$*ctiInterface3$",
+					"jsonPath": "$.interfaces[2]",
+					"apiType": "persistData"
+				},
+				{
+					"name": "$*ctiInterface4$",
+					"jsonPath": "$.interfaces[3]",
+					"apiType": "persistData"
+				},
+				{
+					"name": "$*ctiInterface5$",
+					"jsonPath": "$.interfaces[4]",
+					"apiType": "persistData"
+				},
+				{
+					"name": "$*ctiInterface6$",
+					"jsonPath": "$.interfaces[5]",
+					"apiType": "persistData"
+				},
+				{
+					"name": "$*ctiInterface7$",
+					"jsonPath": "$.interfaces[6]",
+					"apiType": "persistData"
+				},
+				{
+					"name": "$*ctiInterface8$",
+					"jsonPath": "$.interfaces[7]",
+					"apiType": "persistData"
+				}
+
+			],
+			"expectedResponsePayload": {
+				"using": [
+					"tvi-0/4.0",
+					"tvi-0/5.0",
+					"ptvi4",
+					"ptvi5",
+					"tvi-0/602.0",
+					"tvi-0/603.0",
+					"tvi-0/2626.0",
+					"tvi-0/2627.0"
+				]
+			}
+		},
+		{
+			"apiName": "configureTrafficIdentification",
+			"apiEndpoint": "/api/config/devices/device/$*postStagingTemplateName$/config/orgs/org/$*custPrefix$_$*gchId$/traffic-identification/using",
+			"apiType": "PUT",
+			"expectedResponseStatus": "204",
+			"expectedResponsePayload": {},
+			"apiIndex": 6,
+			"respVar": [],
+			"apiPayload": {
+				"using": [
+					"$*ctiInterface1$",
+					"$*ctiInterface2$",
+					"$*ctiInterface3$",
+					"$*ctiInterface4$",
+					"$*ctiInterface5$",
+					"$*ctiInterface6$",
+					"$*ctiInterface7$",
+					"$*ctiInterface8$",
+					"tvi-0/99.0"
+				]
+			}
+		},
+		{
+			"apiName": "ConfigureVrfManager",
+			"apiEndpoint": "api/config/devices/template/$*postStagingTemplateName$/config/system/vnf-manager",
+			"apiType": "PUT",
+			"expectedResponseStatus": "200",
+			"expectedResponsePayload": {},
+			"apiIndex": 7,
+			"respVar": [],
+			"apiPayload": {
+				"vnf-manager": {
+					"ip-addresses": [
+						"$*dirControlIp$/32",
+						"$*peerDirControlIp$/32",
+						"$*mnsoIp$/32"
+					],
+					"vnf-mgmt-interfaces": [
+						"tvi-0/5.0",
+						"tvi-0/99.0"
+					]
+				}
+			}
+		},
+		{
+			"apiName": "ConfigureNTP",
+			"apiEndpoint": "api/config/devices/template/$*postStagingTemplateName$/config/ntp",
+			"apiType": "PUT",
+			"expectedResponseStatus": "200",
+			"expectedResponsePayload": {},
+			"apiIndex": 8,
+			"respVar": [],
+			"apiPayload": {
+				"ntp": {
+					"server": [{
+						"name": "$*ntpServer1$",
+						"routing-instance": "$*custPrefix$_$*gchId$-LAN-VR",
+						"source-interface": "tvi-0/99.0",
+						"version": "4",
+						"enable": true
+					}]
+				}
+			}
+		},
+		{
+			"apiName": "ConfigureCgnat",
+			"apiEndpoint": "api/config/devices/template/$*postStagingTemplateName$/config/orgs/org-services/sit03/cgnat/pools/pool/Pool-LAN-1?unhide=deprecated",
+			"apiType": "PUT",
+			"expectedResponseStatus": "200",
+			"apiIndex": 9,
+			"respVar": [],
+			"expectedResponsePayload": {},
+			"apiPayload": {
+				"pool": {
+					"name": "$*poolName$",
+					"routing-instance": "$*custPrefix$_$*gchId$-LAN-VR",
+					"source-port": {
+						"allocation-scheme": "automatic",
+						"random-allocation": [null]
+					},
+					"egress-interface": ["tvi-0/99.0"]
+				}
+			}
+		},
+		{
+			"apiName": "ConfigureVzUser",
+			"apiEndpoint": "api/config/devices/template/$*postStagingTemplateName$/config/system/users/VZuser",
+			"apiType": "PUT",
+			"expectedResponseStatus": "200",
+			"apiIndex": 10,
+			"respVar": [],
+			"expectedResponsePayload": {},
+			"apiPayload": {
+				"users": {
+					"name": "$*vzUserName$",
+					"login": "cli",
+					"role": "$*vzUserRole$",
+					"ssh-public-key": [],
+					"password": "$*vzUserPswd$"
+				}
+			}
+		},
+		{
+			"apiName": "ConfigureAlarms",
+			"apiEndpoint": "api/config/devices/template/$*postStagingTemplateName$/config/alarms",
+			"apiType": "PUT",
+			"expectedResponseStatus": "200",
+			"apiIndex": 11,
+			"respVar": [],
+			"expectedResponsePayload": {},
+			"apiPayload": {
+				"alarm": {
+					"name": "all",
+					"destinations": [
+						"all"
+					]
+				}
+			}
+		}
+	]
+}
